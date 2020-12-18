@@ -20,7 +20,6 @@ enum SpeedColor {
 
 interface InternetConnection {
     signal: string;
-    color: string;
     speedValue: number;
 }
 
@@ -43,9 +42,12 @@ class InternetSignal {
         [Signal.POOR]: { min: 31, max: 40 },
         [Signal.BAD]: { min: 0, max: 30 },
     }
-    public fastConnetionGroup: InternetConnection[] = [];
-    public mediumConnetionGroup: InternetConnection[] = [];
-    public slowConnetionGroup: InternetConnection[] = [];
+    public connectionsDictionary: EnumDictionary<SpeedColor, InternetConnection[]> = {
+        [SpeedColor.PERFECT]: [],
+        [SpeedColor.Average]: [],
+        [SpeedColor.BED]: [],
+
+    }
 
     constructor(signalStatus: string[]) {
         this.signalStatus = signalStatus
@@ -54,10 +56,6 @@ class InternetSignal {
     getRandomRangeSignalNumber(signal: string): number {
         const signalRange: SignalRange = this.signalDictioneryRangeNumber[signal.toUpperCase()];
         return Math.floor(Math.random() * (signalRange.max - signalRange.min + 1) + signalRange.min);
-    }
-
-    getConnection(signal: Signal, speedValue: number, color: string): InternetConnection {
-        return { signal, speedValue, color };
     }
 
     isFastConnection(speedValue: number): boolean {
@@ -72,29 +70,13 @@ class InternetSignal {
         this.signalStatus.forEach((signal: string) => {
 
             const speedValue: number = this.getRandomRangeSignalNumber(signal);
-            const color: string = this.getSpeedColorByNumber(speedValue);
+            const color: SpeedColor = this.getSpeedColorByNumber(speedValue);
+            this.connectionsDictionary[color].push({ signal, speedValue })
 
-            const isInternetFast: boolean = this.isFastConnection(speedValue);
-            const isInternetMediumSpeed: boolean = this.isMediumConnection(speedValue);
-
-            if (isInternetFast) {
-                this.addConnectionToGroup({ signal, speedValue, color }, this.fastConnetionGroup);
-                return;
-            }
-
-            else if (isInternetMediumSpeed) {
-                this.addConnectionToGroup({ signal, speedValue, color }, this.mediumConnetionGroup);
-                return;
-            }
-
-            this.addConnectionToGroup({ signal, speedValue, color }, this.slowConnetionGroup);
         })
 
     }
 
-    addConnectionToGroup(connection: InternetConnection, connetcionGroup: InternetConnection[]): void {
-        connetcionGroup.push(connection)
-    }
 
     getSpeedColorByNumber(colorNumber: number): SpeedColor {
         const isInternetFast: boolean = this.isFastConnection(colorNumber);
@@ -117,9 +99,8 @@ const internetSignal = new InternetSignal(internetSignalArray);
 internetSignal.parseInternetConnection();
 
 
-console.table(internetSignal.fastConnetionGroup);
-console.table(internetSignal.slowConnetionGroup);
-console.table(internetSignal.mediumConnetionGroup);
+console.table(internetSignal.connectionsDictionary);
+
 
 
 
